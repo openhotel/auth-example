@@ -121,7 +121,7 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       });
     }
 
-    //## VERIFY-SESSION ################################################################################################
+    //## REFRESH-SESSION ###############################################################################################
     case "/refresh-session": {
       const { value: email } = await kv.get(["sessions", data.sessionId]);
       const { value: account } = await kv.get(["accounts", email]);
