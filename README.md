@@ -7,7 +7,7 @@ ___
 
 - `OHAP`: `OpenHotel Auth Protocol`
 
-This projects allows people who want to implement
+This projects helps people who want to implement
 their own auth methods following the `OHAP` with a 
 functional and secure example.
 
