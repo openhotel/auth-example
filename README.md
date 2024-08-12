@@ -3,14 +3,12 @@
 [![Static Badge](https://img.shields.io/badge/CC_BY--NC--SA_4.0-blue?style=for-the-badge&color=gray)](/LICENSE)
 [![Static Badge](https://img.shields.io/badge/discord-b?style=for-the-badge&logo=discord&color=white)](https://discord.gg/qBZfPdNWUj)
 
-___
+---
 
 - `OHAP`: `OpenHotel Auth Protocol`
 
-This projects helps people who want to implement
-their own auth methods following the `OHAP` with a 
-functional and secure example.
-
+This projects helps people who want to implement their own auth methods
+following the `OHAP` with a functional and secure example.
 
 ## How to run the project
 
@@ -22,9 +20,10 @@ functional and secure example.
 
 - Run `deno task start`
 
-
 ## How OHAP works
+
 Configure `OpenHotel` config.yml file with:
+
 ```yaml
 ...
 auth:
@@ -35,17 +34,21 @@ auth:
 ...
 ```
 
-___
+---
+
 #### POST /login
+
 // Client side
 
 ##### Request:
+
 ```json
 {
   "email": "string",
   "password": "string"
 }
 ```
+
 ##### Response:
 
 ```json
@@ -59,19 +62,26 @@ ___
   }
 }
 ```
+
 Redirect user to:
+
 > `clientUrl`/#sessionId=`sessionId`&token=`token`
-___
+
+---
+
 #### POST /verify-session
+
 // Server side
 
 ##### Request:
+
 ```json
 {
   "sessionId": "string",
   "token": "string"
 }
 ```
+
 ##### Response:
 
 ```json
@@ -83,19 +93,23 @@ ___
 }
 ```
 
-___
+---
+
 ### Optional:
 
 #### POST /register
+
 // Client side
 
 ##### Request:
+
 ```json
 {
   "email": "string",
   "password": "string"
 }
 ```
+
 ##### Response:
 
 ```json
@@ -103,11 +117,15 @@ ___
   "status": 200
 }
 ```
-___
+
+---
 
 #### POST /refresh-session
+
 // Client side
+
 ##### Request:
+
 ```json
 {
   "sessionId": "string",
@@ -116,15 +134,16 @@ ___
 ```
 
 ##### Response:
+
 ```json
 {
-  //Same sessionId
-  "sessionId": "string",
-  //New
   "token": "string",
-  //New
   "refreshToken": "string"
 }
 ```
+
+`sessionId` is still the same
+
 Redirect user to:
+
 > `clientUrl`/#sessionId=`sessionId`&token=`token`

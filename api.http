@@ -1,0 +1,42 @@
+# Register user
+POST http://localhost:1931/register
+Content-Type: application/json
+
+{
+  "email": "pablo@example.com",
+  "password": "123456"
+}
+
+###
+
+# Login user
+POST http://localhost:1931/login
+Content-Type: application/json
+
+{
+  "email": "pablo@example.com",
+  "password": "123456"
+}
+
+###
+
+# Verify session
+POST http://localhost:1931/verify-session
+Content-Type: application/json
+
+{
+  "sessionId": "HlZ59r5HrdqD2qHawwwbXnuuuiwUOBo7",
+  "token": "CS0H4tdLIHFZr0EUZgzpQlYbAdVaIE6CAsqgyxFPXbyenTBgFpGeyUujqzYGICZH"
+}
+
+###
+
+# Refresh session
+POST http://localhost:1931/refresh-session
+Content-Type: application/json
+
+{
+  "sessionId": "HlZ59r5HrdqD2qHawwwbXnuuuiwUOBo7",
+  "refreshToken": "3xCxiFSEWpu3eMSG3TkSztBNLOdAzTlMTOlEoEqtf5jrZqduAjmb4iKF4GtZAUo10NRWS8T1YKoIFiBZ7U6yonnxHXdiC2Eu5uwyjhwRAW0MgxFlTR25gqeb6mL47usu"
+}
+

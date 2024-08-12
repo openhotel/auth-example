@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "start": "deno run -A --watch=./src --unstable-kv mod.ts"
+  },
+  "imports": {
+    "deno/": "https://deno.land/std@0.221.0/",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
+  }
+}
