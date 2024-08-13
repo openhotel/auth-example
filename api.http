@@ -4,7 +4,8 @@ Content-Type: application/json
 
 {
   "email": "pablo@example.com",
-  "password": "123456"
+  "password": "123456",
+  "username": "pagoru"
 }
 
 ###
@@ -25,8 +26,8 @@ POST http://localhost:1931/verify-session
 Content-Type: application/json
 
 {
-  "sessionId": "HlZ59r5HrdqD2qHawwwbXnuuuiwUOBo7",
-  "token": "CS0H4tdLIHFZr0EUZgzpQlYbAdVaIE6CAsqgyxFPXbyenTBgFpGeyUujqzYGICZH"
+  "sessionId": "r9rIuNUNmdGFdN263nlZinZxpjtACLts",
+  "token": "fPEnGsTQFuoiTaHSDY541APf41D5EBs4Ewjfr9cLk9kf5IzACdKNwySwsAWKgKYA"
 }
 
 ###
@@ -36,7 +37,7 @@ POST http://localhost:1931/refresh-session
 Content-Type: application/json
 
 {
-  "sessionId": "HlZ59r5HrdqD2qHawwwbXnuuuiwUOBo7",
-  "refreshToken": "3xCxiFSEWpu3eMSG3TkSztBNLOdAzTlMTOlEoEqtf5jrZqduAjmb4iKF4GtZAUo10NRWS8T1YKoIFiBZ7U6yonnxHXdiC2Eu5uwyjhwRAW0MgxFlTR25gqeb6mL47usu"
+  "sessionId": "unOQaeWJWM4WMhPRdpIKfu6VtS86Rjab",
+  "refreshToken": "AP6MLnY5pcFMSQOhMRTwIN6C4FFQMWy9p0TBEk0aIw8GrukHlxsDEY2fBKqy9xuqKYCdQc8f2f0sKRGbtBWjRg0L2KQnBxVMg0MekFxNJQOkyPXR0we3AkaJ76bEictT"
 }
 

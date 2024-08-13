@@ -26,15 +26,24 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
     //## REGISTER ######################################################################################################
     case "/register": {
       const { value: account } = await kv.get(["accounts", data.email]);
-
       if (account) {
         return new Response("409 Email already registered", { status: 409 });
+      }
+
+      const { value: accountByUsername } = await kv.get([
+        "accountsByUsername",
+        data.username,
+      ]);
+      if (accountByUsername) {
+        return new Response("409 Username already in use", { status: 409 });
       }
 
       await kv.set(["accounts", data.email], {
         accountId: crypto.randomUUID(),
         passwordHash: bcrypt.hashSync(data.password, bcrypt.genSaltSync(8)),
+        username: data.username,
       });
+      await kv.set(["accountsByUsername", data.username], data.email);
       return new Response("200", { status: 200 });
     }
 
@@ -64,7 +73,7 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       const refreshToken = getRandomString(128);
 
       if (account.sessionId) {
-        await kv.delete(["sessions", account.sessionId]);
+        await kv.delete(["accountsBySession", account.sessionId]);
       }
 
       await kv.set(["accounts", data.email], {
@@ -73,7 +82,7 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         tokenHash: bcrypt.hashSync(token, bcrypt.genSaltSync(8)),
         refreshTokenHash: bcrypt.hashSync(refreshToken, bcrypt.genSaltSync(8)),
       });
-      await kv.set(["sessions", sessionId], data.email, {
+      await kv.set(["accountsBySession", sessionId], data.email, {
         expireIn,
       });
 
@@ -89,7 +98,10 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
 
     //## VERIFY-SESSION ################################################################################################
     case "/verify-session": {
-      const { value: email } = await kv.get(["sessions", data.sessionId]);
+      const { value: email } = await kv.get([
+        "accountsBySession",
+        data.sessionId,
+      ]);
       const { value: account } = await kv.get(["accounts", email]);
 
       //if token is already used
@@ -111,19 +123,22 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       }
 
       //refresh sessionId expireIn
-      await kv.set(["sessions", account.sessionId], data.email, {
+      await kv.set(["accountsBySession", account.sessionId], data.email, {
         expireIn,
       });
 
       return Response.json({
         status: 200,
-        data: { accountId: account.accountId },
+        data: { accountId: account.accountId, username: account.username },
       });
     }
 
     //## REFRESH-SESSION ###############################################################################################
     case "/refresh-session": {
-      const { value: email } = await kv.get(["sessions", data.sessionId]);
+      const { value: email } = await kv.get([
+        "accountsBySession",
+        data.sessionId,
+      ]);
       const { value: account } = await kv.get(["accounts", email]);
 
       const sessionResult = bcrypt.compareSync(

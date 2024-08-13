@@ -88,14 +88,13 @@ Redirect user to:
 {
   "status": 200,
   "data": {
-    "accountId": "string"
+    "accountId": "string",
+    "username": "string"
   }
 }
 ```
 
 ---
-
-### Optional:
 
 #### POST /register
 
@@ -106,6 +105,7 @@ Redirect user to:
 ```json
 {
   "email": "string",
+  "username": "string",
   "password": "string"
 }
 ```
@@ -119,6 +119,8 @@ Redirect user to:
 ```
 
 ---
+
+### Optional:
 
 #### POST /refresh-session
 
