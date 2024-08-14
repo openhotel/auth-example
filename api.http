@@ -1,3 +1,14 @@
+# Create ticket
+POST http://localhost:1931/create-ticket
+Content-Type: application/json
+
+{
+  "redirectUrl": "example.com",
+  "ticketKey": "THIS_IS_A_PRIVATE_TOKEN"
+}
+
+###
+
 # Register user
 POST http://localhost:1931/register
 Content-Type: application/json
@@ -15,19 +26,23 @@ POST http://localhost:1931/login
 Content-Type: application/json
 
 {
+  "ticketId": "8b2f1929-4cf4-4989-b10e-14f2fb7b8a78",
   "email": "pablo@example.com",
   "password": "123456"
 }
 
 ###
 
-# Verify session
-POST http://localhost:1931/verify-session
+# Claim session
+POST http://localhost:1931/claim-session
 Content-Type: application/json
 
 {
-  "sessionId": "r9rIuNUNmdGFdN263nlZinZxpjtACLts",
-  "token": "fPEnGsTQFuoiTaHSDY541APf41D5EBs4Ewjfr9cLk9kf5IzACdKNwySwsAWKgKYA"
+  "ticketId": "98ae6e67-f2aa-4733-8b40-4f12e76516b7",
+  "ticketKey": "THIS_IS_A_PRIVATE_TOKEN",
+
+  "sessionId": "57343474-3cdf-42af-a86d-276f7ff06a01",
+  "token": "lYRzusLunSAkHppWr7vpuR2LcPrnHk4uDhTXGbYeGu22LEigXZpQNdQ8cp3TbEfA"
 }
 
 ###
@@ -37,7 +52,8 @@ POST http://localhost:1931/refresh-session
 Content-Type: application/json
 
 {
-  "sessionId": "unOQaeWJWM4WMhPRdpIKfu6VtS86Rjab",
-  "refreshToken": "AP6MLnY5pcFMSQOhMRTwIN6C4FFQMWy9p0TBEk0aIw8GrukHlxsDEY2fBKqy9xuqKYCdQc8f2f0sKRGbtBWjRg0L2KQnBxVMg0MekFxNJQOkyPXR0we3AkaJ76bEictT"
+  "ticketId": "98ae6e67-f2aa-4733-8b40-4f12e76516b7",
+  "sessionId": "57343474-3cdf-42af-a86d-276f7ff06a01",
+  "refreshToken": "TvpaXlNfA2NAjplCtfVd5hELFp62V47gdZ2IuiJhQ8BV3U79pLILDgukubGLQBmeEkKwMbD9OWkte4gPtT3K0q2glN7hGTbaOLS3xxqveBLg156GbkLRCw1XugiYzMFD"
 }
 

@@ -11,7 +11,9 @@ export const getRandomString = (length: number) =>
 
 const kv = await Deno.openKv(`./database`);
 
-const expireIn = 1000 * 60 * 60 * 24 * 7;
+const LOGIN_TOKEN_DURATION = 1000 * 60 * 5;
+const REFRESH_TOKEN_DURATION = 1000 * 60 * 60 * 24 * 7;
+const TICKET_DURATION = 1000 * 60 * 60 * 2;
 
 Deno.serve({ port: 1931 }, async (request: Request) => {
   const { url, method } = request;
@@ -23,6 +25,26 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
 
   const data = await request.json();
   switch (parsedUrl.pathname) {
+    //## CREATE-TICKET ######################################################################################################
+    case "/create-ticket": {
+      
+      const ticketId = crypto.randomUUID()
+      await kv.set(["tickets", ticketId], {
+        ticketId,
+        ticketKeyHash: bcrypt.hashSync(data.ticketKey, bcrypt.genSaltSync(8)),
+        redirectUrl: data.redirectUrl,
+        isUsed: false
+      }, {
+        expireIn: TICKET_DURATION
+      });
+      
+      return Response.json({
+        status: 200,
+        data: {
+          ticketId
+        }
+      });
+    }
     //## REGISTER ######################################################################################################
     case "/register": {
       const { value: account } = await kv.get(["accounts", data.email]);
@@ -49,6 +71,14 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
 
     //## LOGIN #########################################################################################################
     case "/login": {
+      const { value: ticket } = await kv.get(["tickets", data.ticketId]);
+      
+      if (!ticket || ticket.isUsed) {
+        return new Response("403 Ticket is not valid!", {
+          status: 403,
+        });
+      }
+      
       const { value: account } = await kv.get(["accounts", data.email]);
 
       if (!account) {
@@ -68,11 +98,12 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         });
       }
 
-      const sessionId = getRandomString(32);
+      const sessionId = crypto.randomUUID();
       const token = getRandomString(64);
       const refreshToken = getRandomString(128);
 
       if (account.sessionId) {
+        await kv.delete(["accountsByRefreshSession", account.sessionId]);
         await kv.delete(["accountsBySession", account.sessionId]);
       }
 
@@ -83,12 +114,23 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         refreshTokenHash: bcrypt.hashSync(refreshToken, bcrypt.genSaltSync(8)),
       });
       await kv.set(["accountsBySession", sessionId], data.email, {
-        expireIn,
+        expireIn: LOGIN_TOKEN_DURATION,
+      });
+      await kv.set(["accountsByRefreshSession", sessionId], data.email, {
+        expireIn: REFRESH_TOKEN_DURATION,
+      });
+      await kv.set(["tickets", ticket.ticketId], {
+        ...ticket,
+        isUsed: true
+      }, {
+        expireIn: LOGIN_TOKEN_DURATION
       });
 
       return Response.json({
         status: 200,
         data: {
+          redirectUrl: `${ticket.redirectUrl}?ticketId=${ticket.ticketId}&sessionId=${sessionId}&token=${token}`,
+          
           sessionId,
           token,
           refreshToken,
@@ -96,19 +138,40 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       });
     }
 
-    //## VERIFY-SESSION ################################################################################################
-    case "/verify-session": {
+    //## CLAIM-SESSION #################################################################################################
+    case "/claim-session": {
+      const { value: ticket } = await kv.get(["tickets", data.ticketId]);
+      
+      if (!ticket || !ticket.isUsed) {
+        return new Response("403", {
+          status: 403,
+        });
+      }
+      
+      const ticketResult = bcrypt.compareSync(
+        data.ticketKey,
+        ticket.ticketKeyHash,
+      );
+      if (!ticketResult) {
+        return new Response("403", { status: 403 });
+      }
+      
       const { value: email } = await kv.get([
         "accountsBySession",
         data.sessionId,
       ]);
+      if (!email) {
+        return new Response("403", { status: 403 });
+      }
       const { value: account } = await kv.get(["accounts", email]);
 
       //if token is already used
       if (!account.tokenHash) {
         return new Response("403", { status: 403 });
       }
-
+      
+      //destroy session token (but not refresh token)
+      await kv.delete(["accountsBySession", account.sessionId]);
       await kv.set(["accounts", email], {
         ...account,
         tokenHash: undefined,
@@ -122,10 +185,8 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         return new Response("403", { status: 403 });
       }
 
-      //refresh sessionId expireIn
-      await kv.set(["accountsBySession", account.sessionId], data.email, {
-        expireIn,
-      });
+      //destroy ticket
+      await kv.delete(["tickets", data.ticketId]);
 
       return Response.json({
         status: 200,
@@ -135,8 +196,16 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
 
     //## REFRESH-SESSION ###############################################################################################
     case "/refresh-session": {
+      const { value: ticket } = await kv.get(["tickets", data.ticketId]);
+      
+      if (!ticket || ticket.isUsed) {
+        return new Response("403 Ticket is not valid!", {
+          status: 403,
+        });
+      }
+      
       const { value: email } = await kv.get([
-        "accountsBySession",
+        "accountsByRefreshSession",
         data.sessionId,
       ]);
       const { value: account } = await kv.get(["accounts", email]);
@@ -157,10 +226,25 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         tokenHash: bcrypt.hashSync(token, bcrypt.genSaltSync(8)),
         refreshTokenHash: bcrypt.hashSync(refreshToken, bcrypt.genSaltSync(8)),
       });
-
+      
+      await kv.set(["accountsBySession", data.sessionId], email, {
+        expireIn: LOGIN_TOKEN_DURATION,
+      });
+      await kv.set(["accountsByRefreshSession", data.sessionId], email, {
+        expireIn: REFRESH_TOKEN_DURATION,
+      });
+      await kv.set(["tickets", ticket.ticketId], {
+        ...ticket,
+        isUsed: true
+      }, {
+        expireIn: LOGIN_TOKEN_DURATION
+      });
+      
       return Response.json({
         status: 200,
         data: {
+          redirectUrl: `${ticket.redirectUrl}?ticketId=${ticket.ticketId}&sessionId=${account.sessionId}&token=${token}`,
+          
           token,
           refreshToken,
         },
