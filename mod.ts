@@ -98,14 +98,14 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
         });
       }
 
-      const sessionId = crypto.randomUUID();
-      const token = getRandomString(64);
-      const refreshToken = getRandomString(128);
-
       if (account.sessionId) {
         await kv.delete(["accountsByRefreshSession", account.sessionId]);
         await kv.delete(["accountsBySession", account.sessionId]);
       }
+      
+      const sessionId = crypto.randomUUID();
+      const token = getRandomString(64);
+      const refreshToken = getRandomString(128);
 
       await kv.set(["accounts", data.email], {
         ...account,
@@ -169,13 +169,6 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       if (!account.tokenHash) {
         return new Response("403", { status: 403 });
       }
-      
-      //destroy session token (but not refresh token)
-      await kv.delete(["accountsBySession", account.sessionId]);
-      await kv.set(["accounts", email], {
-        ...account,
-        tokenHash: undefined,
-      });
 
       const sessionResult = bcrypt.compareSync(
         data.token,
@@ -184,6 +177,13 @@ Deno.serve({ port: 1931 }, async (request: Request) => {
       if (!sessionResult) {
         return new Response("403", { status: 403 });
       }
+      
+      //destroy session token (but not refresh token)
+      await kv.delete(["accountsBySession", account.sessionId]);
+      await kv.set(["accounts", email], {
+        ...account,
+        tokenHash: undefined,
+      });
 
       //destroy ticket
       await kv.delete(["tickets", data.ticketId]);
