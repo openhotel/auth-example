@@ -42,10 +42,10 @@ Configure `OpenHotel` config.yml file with:
 ```yaml
 ...
 auth:
-  # Redirects user to this url
-  redirect: 'https://auth.openhotel.club/'
-  # Server uses this url to check the user sessionId + token
-  verify: 'https://auth.openhotel.club/api/v2/verify-session'
+  # Redirects user to server url
+  redirect: https://client.openhotel.club
+  # Auth service url (it will call /create-ticket and /claim-session)
+  url: https://auth.openhotel.club/api/v2/server
 ...
 ```
 
